@@ -36,3 +36,27 @@ pie <- bp + coord_polar("y", start=0) +
       geom_text(aes(y=ypos,label=Class), color="red", size = 6 )
 
 pie
+
+speedCat <- function(speed){
+  cat <- case_when(
+    speed<=10 ~ "0-10",
+    speed<=20 ~ "11-20",
+    speed<=30 ~ "21-30",
+    speed<=40 ~ "31-40",
+    speed<=50 ~ "41-50",
+    speed<=60 ~ "51-60",
+    speed<=70 ~ "61-70",
+    TRUE ~ ">70"
+    
+  )
+  return(cat)
+}
+
+print(speedCat(20))
+
+parsedData %>%
+  mutate(SpeedBin = speedCat(Speed)) %>%
+  select(Class, SpeedBin) %>%
+  pivot_wider(names_from=SpeedBin, 
+              values_from = Class,
+              values_fn=list(count))
