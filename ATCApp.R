@@ -16,17 +16,26 @@ server <- function(input, output){
     if (is.null(inFile))
       return(NULL)
     
-    rawData <- as.data.frame(readLines(inFile$datapath, warn = FALSE))
+    rawData <- as.data.frame(readLines(inFile$datapath, warn = FALSE), stringsAsFactors = FALSE)
     
     names(rawData)<- c("Row")
     
+    start <-  which(startsWith(rawData$Row, "\\ulnone") )
+    end <-  max(which(startsWith(rawData$Row, "\\par")))-4
     
-    start <- 10 # which(startsWith(rawData$Row, "\\ulnone"), rawData$Row)
-    end <- 120 # which(startsWith(rawData$Row, "\\par"), rawData$Row)-1
+    rawData$Row[start]<-substring(rawData$Row[start],12)
     
-    delimitedData <- rawData %>%
-      separate(rawData, sep=" ")
-
+    data <- as.data.frame(rawData$Row[start:end], stringsAsFactors = FALSE)
+    
+    names(data) <- c("Row")
+    
+    parsedData <- data %>%
+      mutate(Date = substring(Row,16,25), Time = substring(Row, 27, 34 ), Direction = substring(Row, 36, 37)) %>%
+      mutate(Speed = substring(Row,39,44), Class = substring(Row,78,79)) %>%
+      select(Date, Time, Direction, Speed, Class)
+    
+    parsedData
+    
   })
   
   
