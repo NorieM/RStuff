@@ -1,5 +1,6 @@
 library(ggplot2)
 library(hms)
+librart(lubridate)
 
 rawData <- as.data.frame(readLines("C:/projects/R/Site 12_14th Feb - 15th Feb.rtf", warn = FALSE), stringsAsFactors = FALSE)
 
@@ -15,7 +16,7 @@ data <- as.data.frame(rawData$Row[start:end], stringsAsFactors = FALSE)
 names(data) <- c("Row")
 
 parsedData <- data %>%
-  mutate(Date = as.POSIXct(substring(Row,16,25)), Time = as.hms(substring(Row, 27, 34 )), Direction = substring(Row, 36, 37)) %>%
+  mutate(Date = as.POSIXct(substring(Row,16,25)), Time = floor_date(as.POSIXct(substring(Row, 27, 34 ), format="%H:%M:%S"), "15 mins"), Direction = substring(Row, 36, 37)) %>%
   mutate(Speed = as.numeric(substring(Row,39,44)), Class = as.integer(substring(Row,78,79))) %>%
   select(Date, Time, Direction, Speed, Class)
 
@@ -52,11 +53,14 @@ speedCat <- function(speed){
   return(cat)
 }
 
-print(speedCat(20))
+map(parsedData, class)
+
+class(floor_date(parsedData$Time, "15 mins"))
 
 parsedData %>%
   mutate(SpeedBin = speedCat(Speed)) %>%
-  select(Class, SpeedBin) %>%
+  arrange(Time, SpeedBin, Speed) %>%
+  select(Class, SpeedBin, Time) %>%
   pivot_wider(names_from=SpeedBin, 
               values_from = Class,
               values_fn=list(count))
