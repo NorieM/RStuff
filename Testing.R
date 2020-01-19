@@ -22,4 +22,17 @@ parsedData <- data %>%
 classCount <- parsedData %>%
   count(Class) 
 
-classCount
+classCount$Class <- as.factor(classCount$Class)
+
+classCount <- classCount %>%
+  mutate(prop = n / sum(classCount$n) *100) %>%
+  mutate(ypos = cumsum(prop)- 0.5*prop )
+
+bp <- ggplot(classCount, aes(x= "",y=prop, fill=Class)) + 
+  geom_bar(width = 1, stat = "identity")
+
+pie <- bp + coord_polar("y", start=0) +
+      theme_void() + 
+      geom_text(aes(y=ypos,label=Class), color="red", size = 6 )
+
+pie

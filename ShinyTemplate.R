@@ -1,12 +1,6 @@
 library(shiny)
 
-ui <- fluidPage(
-  
-  sliderInput(inputId = "num",
-  label ="Choose a number",
-  value = 25, min = 1, max = 100),
-  fileInput(inputId = "filename", label = "Select ECO file")
-)
+ui <- fluidPage()
 
 server <- function(input, output){}
 
