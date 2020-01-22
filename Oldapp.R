@@ -10,13 +10,15 @@ ui <- fluidPage(
 )
 
 server <- function(input, output){
+
   output$data <- renderTable({
+
     inFile <- input$filename
     
     if (is.null(inFile))
       return(NULL)
     
-    rawData <- as.data.frame(readLines("C:/projects/R/Site 12_14th Feb - 15th Feb.rtf", warn = FALSE), stringsAsFactors = FALSE)
+    rawData <- as.data.frame(readLines(inFile$datapath, warn = FALSE), stringsAsFactors = FALSE)
     
     names(rawData)<- c("Row")
     

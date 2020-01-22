@@ -4,6 +4,11 @@ server <- function(input, output){
 
   output$data <- renderTable({
 
+    inFile <- input$filename
+    
+    if (is.null(inFile))
+      return(NULL)
+
     rawData <- as.data.frame(readLines(inFile$datapath, warn = FALSE), stringsAsFactors = FALSE)
   
     names(rawData)<- c("Row")
@@ -29,6 +34,5 @@ server <- function(input, output){
     return(classCount)
     
   })
-  
-  
+    
 }
