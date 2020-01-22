@@ -2,7 +2,7 @@ server <- function(input, output){
 
   options(shiny.maxRequestSize=30*1024^2) 
 
-  output$data <- renderTable({
+  theData = reactive({
 
     inFile <- input$filename
     
@@ -26,12 +26,17 @@ server <- function(input, output){
       mutate(Date = substring(Row,16,25), Time = substring(Row,27,34), Direction = substring(Row, 36, 37)) %>%
       mutate(Speed = as.numeric(substring(Row,39,44)), Class = as.integer(substring(Row,78,79))) %>%
       select(Date, Time, Direction, Speed, Class)
+
+  })
+
+  output$primary <- renderText({unique(theData()$Direction[1])})
+  output$secondary <- renderText({unique(theData()$Direction[3])})
+
+  output$data <- renderTable({
   
-    classCount <- parsedData %>%
-      group_by(Date, Time, Direction) %>%
+    classCount <- theData() %>%
+      group_by(Direction) %>%
       count(Class) 
-  
-    return(classCount)
     
   })
     

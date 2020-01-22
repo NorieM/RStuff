@@ -3,9 +3,17 @@ library(tidyverse)
 library(textreadr)
 
 ui <- fluidPage(
-  
-  fileInput(inputId = "filename", label = "Select ECO file"),
+  sidebarPanel(
+
+	  fileInput(inputId = "filename", label = "Select ECO file"),
+	  width = 2
+	),
   mainPanel(
-    tableOutput(outputId = "data")
+	
+    tabsetPanel(
+	tabPanel("Primary", textOutput("primary")),
+	tabPanel("Secondary", textOutput("secondary")),
+	tabPanel("Classes", tableOutput("data"))
+	)
   )
 )
