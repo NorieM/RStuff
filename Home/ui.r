@@ -1,3 +1,5 @@
+library(DT)
+library(lubridate)
 library(shiny)
 library(tidyverse)
 library(textreadr)
@@ -11,9 +13,8 @@ ui <- fluidPage(
   mainPanel(
 	
     tabsetPanel(
-	tabPanel("Primary", textOutput("primary")),
-	tabPanel("Secondary", textOutput("secondary")),
-	tabPanel("Classes", tableOutput("data")),
+	tabPanel("Survey Details", dataTableOutput("directions")),
+	tabPanel("Classes", dataTableOutput("data")),
 	tabPanel("Chart", plotOutput("chart"))
 	)
   )

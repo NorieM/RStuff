@@ -34,10 +34,14 @@ server <- function(input, output){
 
   })
 
-  output$primary <- renderText({unique(theData()$Direction[1])})
-  output$secondary <- renderText({unique(theData()$Direction[3])})
+  output$directions <- renderDataTable({
+	dirA <- unique(theData()$Direction)[1]
+	dirB <- unique(theData()$Direction)[2]
 
-  output$data <- renderTable({
+	dirs <- data.frame("Directions" = c(dirA, dirB))
+	})
+
+  output$data <- renderDataTable({
   
     classCount <- theData() %>%
       group_by(Date,Direction) %>%
