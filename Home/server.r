@@ -4,11 +4,26 @@
 
 server <- function(input, output, session){
 
-  options(shiny.maxRequestSize=30*1024^2) 
-  
-  tblDirections <- data.frame("Dir"= c("N", "E", "W", "S"), "Direction" = c("Northbound", "Eastbound", "Westbound", "Southbound"), stringsAsFactors = FALSE)
+    options(shiny.maxRequestSize=30*1024^2) 
 
-  theData = reactive({
+    hideTab("Tabs", "Dashboard")
+    hideTab("Tabs", "Classes")
+    hideTab("Tabs", "Chart")
+
+    tblClassSummary <- data.frame("Class" = seq(1,12), "Description" = c("PC/MC","CAR/LGV","CAR/LGV","OGV1 & PSV 2 Axle","OGV1 & PSV 3 Axle","OGV2","OGV1 & PSV 3 Axle","OGV2","OGV2","OGV2","OGV2","OGV2"
+))
+
+    tblDirections <- data.frame("Dir"= c("N", "E", "W", "S"), "Direction" = c("Northbound", "Eastbound", "Westbound", "Southbound"), stringsAsFactors = FALSE)
+
+    observeEvent(input$filename, {
+        if(!is.null(input$filename)){
+	    showTab("Tabs", "Dashboard")
+	    showTab("Tabs", "Classes")
+	    showTab("Tabs", "Chart")
+        }
+    })
+
+    theData = reactive({
 
     inFile <- input$filename
     
@@ -36,7 +51,7 @@ server <- function(input, output, session){
               
   })
 
-  output$directions <- renderTable({
+  output$dashboard <- renderTable({
 	dirA <- unique(theData()$Direction)[1]
 	dirB <- unique(theData()$Direction)[2]
 

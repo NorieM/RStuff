@@ -13,8 +13,8 @@ ui <- fluidPage(
 	),
   mainPanel(
 	
-    tabsetPanel(
-	tabPanel("Survey Details", tableOutput("directions")),
+    tabsetPanel(id="Tabs",
+	tabPanel("Dashboard", tableOutput("dashboard")),
 	tabPanel("Classes", tableOutput("data")),
 	tabPanel("Chart", plotOutput("chart"))
 	)
