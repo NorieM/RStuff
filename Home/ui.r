@@ -7,14 +7,15 @@ library(textreadr)
 ui <- fluidPage(
   sidebarPanel(
 
-	  fileInput(inputId = "filename", label = "Select ECO file"),
-	  width = 2
+	fileInput(inputId = "filename", label = "Select ECO file"),
+	uiOutput("direction_dropdown"),
+	width = 2
 	),
   mainPanel(
 	
     tabsetPanel(
-	tabPanel("Survey Details", dataTableOutput("directions")),
-	tabPanel("Classes", dataTableOutput("data")),
+	tabPanel("Survey Details", tableOutput("directions")),
+	tabPanel("Classes", tableOutput("data")),
 	tabPanel("Chart", plotOutput("chart"))
 	)
   )
