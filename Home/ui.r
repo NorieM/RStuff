@@ -14,7 +14,12 @@ ui <- fluidPage(
   mainPanel(
 	
     tabsetPanel(id="Tabs",
-	tabPanel("Dashboard", tableOutput("dashboard")),
+	tabPanel("Dashboard", 
+		fluidRow(
+			column(6, tableOutput("dashboard")),
+			column(6, plotOutput("piechart"))		
+		)
+	),
 	tabPanel("Classes", tableOutput("data")),
 	tabPanel("Chart", plotOutput("chart"))
 	)
