@@ -16,8 +16,9 @@ ui <- fluidPage(
     tabsetPanel(id="Tabs",
 	tabPanel("Dashboard", 
 		fluidRow(
-			column(6, tableOutput("dashboard")),
-			column(6, plotOutput("piechart"))		
+			column(4, tableOutput("dashboard")),
+			column(4, tableOutput("dashboard2")),
+			column(4, plotOutput("piechart"))		
 		)
 	),
 	tabPanel("Classes", tableOutput("data")),

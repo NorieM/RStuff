@@ -62,11 +62,42 @@ server <- function(input, output, session){
 	})
 
   output$dashboard2 <- renderTable({
-	average_speeds <- theData() %>%
-		group_by(Direction)  %>%
-		summarize(Average = mean(Speed), Percentile = quantile(Speed, probs=0.85, na.rm=TRUE)) %>%
-      	rbind(c("Both", mean(theData()$Speed), quantile(theData()$Speed, probs=0.85, na.rm=TRUE))) %>%
-		mutate(Average = as.numeric(Average), Percentile = as.numeric(Percentile))
+	speed_limit <- 50
+
+	speedsNorth <- theData() %>% filter(Direction=="Eastbound")
+	speedsSouth <- theData() %>% filter(Direction=="Westbound")
+
+	speeds <- theData()$Speed
+
+	PSL <- length(which(speeds<=50))
+	APO <- length(which(speeds>50))
+ 	DFT <- length(which(speeds>65))
+
+	summaryBoth <- c(PSL, APO, DFT)
+
+	speeds <- 	speedsNorth$Speed
+
+	PSL <- length(which(speeds<=50))
+	APO <- length(which(speeds>50))
+ 	DFT <- length(which(speeds>65))
+
+	summaryNorth <- c(PSL, APO, DFT)
+
+	speeds <- 	speedsSouth$Speed
+
+	PSL <- length(which(speeds<=50))
+	APO <- length(which(speeds>50))
+ 	DFT <- length(which(speeds>65))
+
+	summarySouth <- c(PSL, APO, DFT)
+
+	summary<-as.data.frame(rbind(summaryNorth, summarySouth, summaryBoth))
+	
+	names(summary)<-c("PSL", "APO", "DFT")
+
+      row.names(summary) <-c("Eastbound", "Westbound", "Both")
+
+	summary
 
 	})
 
