@@ -9,7 +9,7 @@ getDirection <- function(dir){
 tblDirections <- data.frame("Dir"= c("N", "E", "W", "S"), "Direction" = c("Northbound", "Eastbound", "Westbound", "Southbound"), stringsAsFactors = FALSE)
 
 
-rawData <- as.data.frame(readLines("C:/Test/Projects/RStuff/Home/Site 12_14th Feb - 15th Feb.rtf", warn = FALSE), stringsAsFactors = FALSE)
+rawData <- as.data.frame(readLines("C:/Test/Projects/RStuff/Home/ATCReport.rtf", warn = FALSE), stringsAsFactors = FALSE)
 
 names(rawData)<- c("Row")
 

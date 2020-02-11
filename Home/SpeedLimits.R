@@ -1,39 +1,49 @@
-	speed_limit <- 50
+	speedLimit <- 50
 
-	speedsNorth <-parsedData %>% filter(Direction=="Eastbound")
-	speedsSouth <-parsedData %>% filter(Direction=="Westbound")
+      dirPrimary <- unique(parsedData$Direction)[1]
+      dirSecondary <- unique(parsedData$Direction)[2]
+
+	dirs <- c(dirPrimary, dirSecondary, "Both")
+
+	speedsPrimary <- parsedData %>% filter(Direction==dirPrimary)
+	speedsSecondary <- parsedData %>% filter(Direction==dirSecondary)
 
 	speeds <- parsedData$Speed
+	totalVol <- length(speeds)
 
-	PSL <- length(which(speeds<=50))
-	APO <- length(which(speeds>50))
- 	DFT <- length(which(speeds>65))
+	PSL <- length(which(speeds>speedLimit))
+	APO <- length(which(speeds>speedLimit*1.1+2))
+ 	DFT <- length(which(speeds>speedLimit+15))
 
-	summaryBoth <- c(PSL, APO, DFT)
+	summaryBoth <- paste0(round(c(PSL, APO, DFT)/totalVol * 100,2), "%")
 
-	speeds <- 	speedsNorth$Speed
+	speeds <- 	speedsPrimary$Speed
+	totalVol <- length(speeds)
 
-	PSL <- length(which(speeds<=50))
-	APO <- length(which(speeds>50))
- 	DFT <- length(which(speeds>65))
+	PSL <- length(which(speeds>speedLimit))
+	APO <- length(which(speeds>speedLimit*1.1+2))
+ 	DFT <- length(which(speeds>speedLimit+15))
 
-	summaryNorth <- c(PSL, APO, DFT)
+	summaryPrimary <- paste0(round(c(PSL, APO, DFT)/totalVol * 100,2), "%")
 
+	
+	speeds <- 	speedsSecondary$Speed
+	totalVol <- length(speeds) 
 
-	speeds <- 	speedsSouth$Speed
+	PSL <- length(which(speeds>speedLimit))
+	APO <- length(which(speeda>speedLimit*1.1+2))
+ 	DFT <- length(which(speeds>speedLimit+15))
 
-	PSL <- length(which(speeds<=50))
-	APO <- length(which(speeds>50))
- 	DFT <- length(which(speeds>65))
+	summarySecondary <- paste0(round(c(PSL, APO, DFT)/totalVol * 100,2), "%")
 
-	summarySouth <- c(PSL, APO, DFT)
+      summary<-rbind(summaryPrimary, summarySecondary,summaryBoth, deparse.level=0)
 
-	summary<-as.data.frame(rbind(summaryNorth, summarySouth, summaryBoth))
+	dirs <- c(dirPrimary, dirSecondary, "Both")
 
-	names(summary)<-c("PSL", "APO", "DFT")
+	summary<-cbind(dirs, summary) 
 
-      row.names(summary) <-c("Eastbound", "Westbound", "Both")
+	summary<- as.data.frame(summary)
 
-class(summary)
+      names(summary) <-c("Direction", "PSL", "APO", "DFT")
 
-summary
+	summary

@@ -62,40 +62,51 @@ server <- function(input, output, session){
 	})
 
   output$dashboard2 <- renderTable({
-	speed_limit <- 50
 
-	speedsNorth <- theData() %>% filter(Direction=="Eastbound")
-	speedsSouth <- theData() %>% filter(Direction=="Westbound")
+	speedLimit <- 50
+
+      dirPrimary <- unique(theData()$Direction)[1]
+      dirSecondary <- unique(theData()$Direction)[2]
+
+      dirs <- c(dirPrimary, dirSecondary, "Both")
+
+	speedsPrimary <- theData() %>% filter(Direction==dirPrimary)
+	speedsSecondary <- theData() %>% filter(Direction==dirSecondary)
 
 	speeds <- theData()$Speed
+	totalVol <- length(speeds)
 
-	PSL <- length(which(speeds<=50))
-	APO <- length(which(speeds>50))
- 	DFT <- length(which(speeds>65))
+	PSL <- length(which(speeds>speedLimit))
+	APO <- length(which(speeds>speedLimit*1.1+2))
+ 	DFT <- length(which(speeds>speedLimit+15))
 
-	summaryBoth <- c(PSL, APO, DFT)
+	summaryBoth <- paste0(round(c(PSL, APO, DFT)/totalVol * 100, 2), "%")
 
-	speeds <- 	speedsNorth$Speed
+	speeds <- 	speedsPrimary$Speed
+	totalVol <- length(speeds)
 
-	PSL <- length(which(speeds<=50))
-	APO <- length(which(speeds>50))
- 	DFT <- length(which(speeds>65))
+	PSL <- length(which(speeds>speedLimit))
+	APO <- length(which(speeds>speedLimit*1.1+2))
+ 	DFT <- length(which(speeds>speedLimit+15))
 
-	summaryNorth <- c(PSL, APO, DFT)
+	summaryPrimary <- paste0(round(c(PSL, APO, DFT)/totalVol * 100,2), "%")
 
-	speeds <- 	speedsSouth$Speed
+	speeds <- 	speedsSecondary$Speed
+	totalVol <- length(speeds)
 
-	PSL <- length(which(speeds<=50))
-	APO <- length(which(speeds>50))
- 	DFT <- length(which(speeds>65))
+	PSL <- length(which(speeds>speedLimit))
+	APO <- length(which(speeds>speedLimit*1.1+2))
+ 	DFT <- length(which(speeds>speedLimit+15))
 
-	summarySouth <- c(PSL, APO, DFT)
+	summarySecondary <- paste0(round(c(PSL, APO, DFT)/totalVol * 100, 2), "%")
 
-	summary<-as.data.frame(rbind(summaryNorth, summarySouth, summaryBoth))
+	summary <- rbind(summaryPrimary, summarySecondary, summaryBoth, deparse.level = 0)
 	
-	names(summary)<-c("PSL", "APO", "DFT")
+	summary<-cbind(dirs, summary) 
 
-      row.names(summary) <-c("Eastbound", "Westbound", "Both")
+	summary <- as.data.frame(summary)
+
+	names(summary)<-c("Direction", "PSL", "APO", "DFT")
 
 	summary
 
@@ -127,7 +138,6 @@ server <- function(input, output, session){
   })
 
   output$piechart <-renderPlot({
-
 	
 	classCount <- theData() %>%
 		  count(Description) 
@@ -141,7 +151,7 @@ server <- function(input, output, session){
 		pie <- bp +	coord_polar("y", start=0) +
 	      theme_void() +
 		theme(plot.title = element_text(hjust = 0.5 ,face = "bold")) + 
-		ggtitle("Traffic Composition by  Class - Total Surveyed Vehicles")
+		ggtitle("Traffic Composition by Class\nTotal Surveyed Vehicles")
 
 	pie
 

@@ -14,11 +14,15 @@ ui <- fluidPage(
   mainPanel(
 	
     tabsetPanel(id="Tabs",
-	tabPanel("Dashboard", 
-		fluidRow(
-			column(4, tableOutput("dashboard")),
-			column(4, tableOutput("dashboard2")),
-			column(4, plotOutput("piechart"))		
+	tabPanel("Dashboard",
+		fluidPage( 
+			fluidRow(
+				column(4, tableOutput("dashboard")),
+				column(4, tableOutput("dashboard2")),
+				column(4, plotOutput("piechart"))
+			),
+			fluidRow(
+			)
 		)
 	),
 	tabPanel("Classes", tableOutput("data")),
