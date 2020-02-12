@@ -35,10 +35,15 @@ average_speeds <- parsedData %>%
 	mutate(Average = as.numeric(Average), Percentile = as.numeric(Percentile))
 average_speeds
 
-parsedData %>%
+speedSummary <- parsedData %>%
 	group_by(Direction) %>%
       mutate( PSO = as.numeric(Speed>speed_limit)) %>%
       mutate( APO = as.numeric(Speed>speed_limit*1.1+2)) %>%
       mutate( DFT = as.numeric(Speed>speed_limit+15)) %>%
-	group_by(Direction)%>%
-      count(PSO, APO, DFT)
+		summarize(PSO = sum(PSO), APO = sum(APO), DFT = sum(DFT)) %>%
+      rbind(c("Both", length(which(parsedData$Speed > speed_limit)), 
+   				length(which(parsedData$Speed > speed_limit*1.1+2)),
+				length(which(parsedData$Speed > speed_limit+15)))) 
+
+
+speedSummary
