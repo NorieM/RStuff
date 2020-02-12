@@ -20,6 +20,7 @@ server <- function(input, output, session){
 	    showTab("Tabs", "Dashboard")
 	    showTab("Tabs", "Classes")
 	    showTab("Tabs", "Chart")
+
         }
     })
 
@@ -52,63 +53,44 @@ server <- function(input, output, session){
               
   })
 
-  output$dashboard <- renderTable({
+  output$aveSpeeds <- renderTable({
 	average_speeds <- theData() %>%
 		group_by(Direction)  %>%
 		summarize(Average = mean(Speed), Percentile = quantile(Speed, probs=0.85, na.rm=TRUE)) %>%
       	rbind(c("Both", mean(theData()$Speed), quantile(theData()$Speed, probs=0.85, na.rm=TRUE))) %>%
 		mutate(Average = as.numeric(Average), Percentile = as.numeric(Percentile))
-
+	average_speeds
 	})
 
-  output$dashboard2 <- renderTable({
+  output$limitSummary <- renderTable({
 
 	speedLimit <- 50
+		psoSummary <- parsedData %>%
+		filter(Speed>speed_limit)%>%
+		group_by(Direction)%>%
+		count(Direction)
 
-      dirPrimary <- unique(theData()$Direction)[1]
-      dirSecondary <- unique(theData()$Direction)[2]
+	apoSummary <-  parsedData %>%
+		filter(Speed>speed_limit*1.1+2)%>%
+		group_by(Direction)%>%
+		count(Direction)
 
-      dirs <- c(dirPrimary, dirSecondary, "Both")
+	dftSummary <-  parsedData %>%
+		filter(Speed>speed_limit+15)%>%
+		group_by(Direction)%>%
+		count(Direction)
 
-	speedsPrimary <- theData() %>% filter(Direction==dirPrimary)
-	speedsSecondary <- theData() %>% filter(Direction==dirSecondary)
+	speedSummary <-data.frame(psoSummary$n, apoSummary$n, dftSummary$n)
 
-	speeds <- theData()$Speed
-	totalVol <- length(speeds)
+	names(speedSummary) = c("PSO", "APO", "DFT")
 
-	PSL <- length(which(speeds>speedLimit))
-	APO <- length(which(speeds>speedLimit*1.1+2))
- 	DFT <- length(which(speeds>speedLimit+15))
+	speedSummary <- add_row(speedSummary, PSO = parsedData %>% filter(Speed>speed_limit) %>% count(),
+							  APO = parsedData %>% filter(Speed>speed_limit*1.1+2) %>% count(),
+							  DFT = parsedData %>% filter(Speed>speed_limit+15) %>% count())	
 
-	summaryBoth <- paste0(round(c(PSL, APO, DFT)/totalVol * 100, 2), "%")
+	row.names(speedSummary) = c(psoSummary$Direction[1], psoSummary$Direction[2], "Both")
 
-	speeds <- 	speedsPrimary$Speed
-	totalVol <- length(speeds)
-
-	PSL <- length(which(speeds>speedLimit))
-	APO <- length(which(speeds>speedLimit*1.1+2))
- 	DFT <- length(which(speeds>speedLimit+15))
-
-	summaryPrimary <- paste0(round(c(PSL, APO, DFT)/totalVol * 100,2), "%")
-
-	speeds <- 	speedsSecondary$Speed
-	totalVol <- length(speeds)
-
-	PSL <- length(which(speeds>speedLimit))
-	APO <- length(which(speeds>speedLimit*1.1+2))
- 	DFT <- length(which(speeds>speedLimit+15))
-
-	summarySecondary <- paste0(round(c(PSL, APO, DFT)/totalVol * 100, 2), "%")
-
-	summary <- rbind(summaryPrimary, summarySecondary, summaryBoth, deparse.level = 0)
-	
-	summary<-cbind(dirs, summary) 
-
-	summary <- as.data.frame(summary)
-
-	names(summary)<-c("Direction", "PSL", "APO", "DFT")
-
-	summary
+	speedSummary      
 
 	})
 
@@ -156,6 +138,15 @@ server <- function(input, output, session){
 	pie
 
 	})  
+
+  output$map <- renderLeaflet({
+	dfLatLng <- data.frame(lat = 55.9004, lng = -3.5969)
+	m <- leaflet() %>% setView(lat = 55.9004, lng = -3.5969, zoom = 16) %>%
+		addMarkers(data = dfLatLng) %>% 
+		addTiles()
+	m
+  	}
+  )
 
   output$direction_dropdown <- renderUI({
     selectInput("direction", 

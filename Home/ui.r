@@ -1,4 +1,5 @@
 library(DT)
+library(leaflet)
 library(lubridate)
 library(shiny)
 library(tidyverse)
@@ -17,14 +18,14 @@ ui <- fluidPage(
 	tabPanel("Dashboard",
 		fluidPage( 
 			fluidRow(
-				column(4, tableOutput("dashboard")),
-				column(4, tableOutput("dashboard2")),
+				column(4, tableOutput("aveSpeeds")),
+				column(4, tableOutput("limitSummary")),
+				column(4, leafletOutput("map")),
 				column(4, plotOutput("piechart"))
-			),
-			fluidRow(
 			)
 		)
 	),
+	#tabPanel("Map", leafletOutput("map")),
 	tabPanel("Classes", tableOutput("data")),
 	tabPanel("Chart", plotOutput("chart"))
 	)
