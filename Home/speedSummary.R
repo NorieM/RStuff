@@ -23,7 +23,6 @@ speedSummary <- add_row(speedSummary, PSO = parsedData %>% filter(Speed>speed_li
 						  APO = parsedData %>% filter(Speed>speed_limit*1.1+2) %>% count(),
 						  DFT = parsedData %>% filter(Speed>speed_limit+15) %>% count())	
 
-
 row.names(speedSummary) = c(psoSummary$Direction[1], psoSummary$Direction[2], "Both")
 
 speedSummary
@@ -44,6 +43,5 @@ speedSummary <- parsedData %>%
       rbind(c("Both", length(which(parsedData$Speed > speed_limit)), 
    				length(which(parsedData$Speed > speed_limit*1.1+2)),
 				length(which(parsedData$Speed > speed_limit+15)))) 
-
 
 speedSummary

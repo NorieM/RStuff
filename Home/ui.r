@@ -7,16 +7,26 @@ library(tidyverse)
 library(textreadr)
 
 ui <- fluidPage(
+
+  tags$head(
+	tags$style(
+	  	HTML("th {
+			 background-color:#ff0000;
+			 color:white;text-align: 
+      		 center;
+			}")  
+	)
+  ),
+
   sidebarPanel(
 
 	fileInput(inputId = "filename", label = "Select ECO file"),
 	uiOutput("direction_dropdown"),
 	width = 2
 	),
+
   mainPanel(
 	
-    tags$style(type="text/css", "#speedClassed th: {background-color:#ff0000 ;color:white;text-align: center;}"),
-
     tabsetPanel(id="Tabs",
 	tabPanel("Dashboard",
 		fluidPage( 
