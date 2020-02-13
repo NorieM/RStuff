@@ -1,4 +1,5 @@
 library(DT)
+library(hms)
 library(leaflet)
 library(lubridate)
 library(shiny)
@@ -14,6 +15,8 @@ ui <- fluidPage(
 	),
   mainPanel(
 	
+    tags$style(type="text/css", "#speedClassed th: {background-color:#ff0000 ;color:white;text-align: center;}"),
+
     tabsetPanel(id="Tabs",
 	tabPanel("Dashboard",
 		fluidPage( 
@@ -25,7 +28,8 @@ ui <- fluidPage(
 			)
 		)
 	),
-	#tabPanel("Map", leafletOutput("map")),
+	tabPanel("Speed 15min", tableOutput("speedClassed")
+		),
 	tabPanel("Classes", tableOutput("data")),
 	tabPanel("Chart", plotOutput("chart"))
 	)
