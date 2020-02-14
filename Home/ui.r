@@ -23,6 +23,7 @@ ui <- fluidPage(
 				}
 			tbody td {
   				font-size: 12px;
+ 				border-left: 2px solid #D0E4F5;
   				}
 			tr:nth-child(even) {
   				background: #D0E4F5;
@@ -52,6 +53,7 @@ ui <- fluidPage(
   sidebarPanel(
 
 	fileInput(inputId = "filename", label = "Select ECO file"),
+	radioButtons(inputId =  "interval", label = "Interval (mins)", c(15, 60)), 
 	uiOutput("direction_dropdown"),
 	width = 2
 	),
@@ -64,15 +66,15 @@ ui <- fluidPage(
 			fluidRow(
 				column(4, tableOutput("aveSpeeds")),
 				column(4, tableOutput("limitSummary")),
-				column(4, leafletOutput("map")),
 				column(4, plotOutput("piechart"))
 			)
 		)
 	),
-	tabPanel("Speed 15min", tableOutput("speedClassed")
+	tabPanel("Speed", tableOutput("speedClassed")
 		),
 	tabPanel("Classes", tableOutput("data")),
-	tabPanel("Chart", plotOutput("chart"))
+	tabPanel("Chart", plotOutput("chart")),
+	tabPanel("Map", leafletOutput("map"))
 	)
   )
 )

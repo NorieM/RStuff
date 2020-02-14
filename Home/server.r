@@ -9,7 +9,8 @@ server <- function(input, output, session){
     hideTab("Tabs", "Dashboard")
     hideTab("Tabs", "Classes")
     hideTab("Tabs", "Chart")
-
+    hideTab("Tabs", "Speed")
+    hideTab("Tabs", "Map")
     tblClassSummary <- data.frame("Class" = seq(1,12), "Description" = c("PC/MC","CAR/LGV","CAR/LGV","OGV1 & PSV 2 Axle","OGV1 & PSV 3 Axle","OGV2","OGV1 & PSV 3 Axle","OGV2","OGV2","OGV2","OGV2","OGV2"
 ))
 
@@ -20,7 +21,8 @@ server <- function(input, output, session){
 	    showTab("Tabs", "Dashboard")
 	    showTab("Tabs", "Classes")
 	    showTab("Tabs", "Chart")
-
+          showTab("Tabs", "Speed")	
+          showTab("Tabs", "Map")
         }
     })
 
@@ -45,7 +47,7 @@ server <- function(input, output, session){
     names(data) <- c("Row")
 
     parsedData <- data %>%
-	mutate(Date = as.POSIXct(substring(Row,16,25)), Time = format(floor_date(as.POSIXct(substring(Row, 27, 34 ), format="%H:%M:%S"), "15 mins"), "%H:%M"), Dir = substring(Row, 36, 36)) %>%
+	mutate(Date = as.POSIXct(substring(Row,16,25)), Time = format(floor_date(as.POSIXct(substring(Row, 27, 34 ), format="%H:%M:%S"), paste0(input$interval, " mins")), "%H:%M"), Dir = substring(Row, 36, 36)) %>%
 	mutate(Speed = as.numeric(substring(Row,39,44)), Class = as.integer(substring(Row,78,79))) %>%
 	left_join(tblDirections) %>%
 	inner_join(tblClassSummary) %>%
@@ -75,17 +77,17 @@ server <- function(input, output, session){
 
 	speed_limit <- 50
 
-	psoSummary <- parsedData %>%
+	psoSummary <- theData() %>%
 		filter(Speed>speed_limit)%>%
 		group_by(Direction)%>%
 		count(Direction)
 
-	apoSummary <-  parsedData %>%
+	apoSummary <-  theData() %>%
 		filter(Speed>speed_limit*1.1+2)%>%
 		group_by(Direction)%>%
 		count(Direction)
 
-	dftSummary <-  parsedData %>%
+	dftSummary <-  theData() %>%
 		filter(Speed>speed_limit+15)%>%
 		group_by(Direction)%>%
 		count(Direction)
@@ -94,9 +96,9 @@ server <- function(input, output, session){
 
 	names(speedSummary) = c("PSO", "APO", "DFT")
 
-	speedSummary <- add_row(speedSummary, PSO = parsedData %>% filter(Speed>speed_limit) %>% count(),
-							  APO = parsedData %>% filter(Speed>speed_limit*1.1+2) %>% count(),
-							  DFT = parsedData %>% filter(Speed>speed_limit+15) %>% count())	
+	speedSummary <- add_row(speedSummary, PSO = theData() %>% filter(Speed>speed_limit) %>% count(),
+							  APO = theData() %>% filter(Speed>speed_limit*1.1+2) %>% count(),
+							  DFT = theData() %>% filter(Speed>speed_limit+15) %>% count())	
 
 	row.names(speedSummary) = c(psoSummary$Direction[1], psoSummary$Direction[2], "Both")
 
@@ -109,9 +111,21 @@ server <- function(input, output, session){
 
   output$data <- renderTable({
   
-    classCount <- theData() %>%
-      group_by(Date,Direction) %>%
-      count(Class) 
+	classCount <- theData() %>%
+		select(Date, Time, Direction, Class) %>%
+	      arrange(Date, Time, Direction)%>%
+      	group_by(Time,Direction) %>%
+		pivot_wider(names_from=Class, 
+			values_from = Class, 
+	      	values_fn=list(Class=length)) 
+
+	classCount <-as.data.frame(classCount)
+
+	classCount[is.na(classCount)]=0
+
+	classCount<-classCount[, c("Date", "Time", "Direction", seq(1, max(parsedData$Class),1))]
+
+	classCount
     
   })
 
