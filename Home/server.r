@@ -53,6 +53,15 @@ server <- function(input, output, session){
               
   })
 
+  output$map <- renderLeaflet({
+	dfLatLng <- data.frame(lat = 55.9004, lng = -3.5969)
+	m <- leaflet() %>% setView(lat = 55.9004, lng = -3.5969, zoom = 16) %>%
+		addMarkers(data = dfLatLng) %>% 
+		addTiles()
+	m
+  	}
+  )
+
   output$aveSpeeds <- renderTable({
 	average_speeds <- theData() %>%
 		group_by(Direction)  %>%
@@ -64,8 +73,9 @@ server <- function(input, output, session){
 
   output$limitSummary <- renderTable({
 
-	speedLimit <- 50
-		psoSummary <- parsedData %>%
+	speed_limit <- 50
+
+	psoSummary <- parsedData %>%
 		filter(Speed>speed_limit)%>%
 		group_by(Direction)%>%
 		count(Direction)
@@ -141,15 +151,6 @@ server <- function(input, output, session){
 	pie
 
 	})  
-
-  output$map <- renderLeaflet({
-	dfLatLng <- data.frame(lat = 55.9004, lng = -3.5969)
-	m <- leaflet() %>% setView(lat = 55.9004, lng = -3.5969, zoom = 16) %>%
-		addMarkers(data = dfLatLng) %>% 
-		addTiles()
-	m
-  	}
-  )
 
   output$speedClassed <- renderTable({
 
