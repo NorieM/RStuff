@@ -123,7 +123,7 @@ server <- function(input, output, session){
 
 	classCount[is.na(classCount)]=0
 
-	classCount<-classCount[, c("Date", "Time", "Direction", seq(1, max(parsedData$Class),1))]
+	classCount<-classCount[, c("Date", "Time", "Direction", seq(1, max(theData()$Class),1))]
 
 	classCount
     
