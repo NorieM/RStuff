@@ -25,7 +25,6 @@
  	DFT <- length(which(speeds>speedLimit+15))
 
 	summaryPrimary <- paste0(round(c(PSL, APO, DFT)/totalVol * 100,2), "%")
-
 	
 	speeds <- 	speedsSecondary$Speed
 	totalVol <- length(speeds) 

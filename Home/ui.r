@@ -6,52 +6,12 @@ library(shiny)
 library(tidyverse)
 library(textreadr)
 
-ui <- fluidPage(
+ui <- fluidPage(theme="style.css",
 
-  tags$head(
-	tags$style(
-	  	HTML("table {
-  				border: 1px solid #1C6EA4;
-				background-color: #EEEEEE;
-  				width: 100%;
-  				text-align: center;
-  				border-collapse: collapse;
-				}
-			td, table. th {
-  				border: 1px solid #AAAAAA;
-  				padding: 2px 2px;
-				}
-			tbody td {
-  				font-size: 12px;
- 				border-left: 2px solid #D0E4F5;
-  				}
-			tr:nth-child(even) {
-  				background: #D0E4F5;
-				}
-			thead {
-  				background: #1C6EA4;
-  				background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-  				background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-  				background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
-  				border-bottom: 2px solid #444444;
-				}
-			thead th {
-	  			font-size: 12px;
-  				font-weight: bold;
-  				color: #FFFFFF;
-		  		text-align: center;
-  				border-left: 2px solid #D0E4F5;
-				}
-			thead th:first-child {
-  				border-left: none;
-				}
-
-			")  
-	)
-  ),
+#  tags$head(
+#	tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
 
   sidebarPanel(
-
 	fileInput(inputId = "filename", label = "Select ECO file"),
 	radioButtons(inputId =  "interval", label = "Interval (mins)", c(15, 60)), 
 	uiOutput("direction_dropdown"),
@@ -70,8 +30,8 @@ ui <- fluidPage(
 			)
 		)
 	),
-	tabPanel("Speed", tableOutput("speedClassed")
-		),
+	tabPanel("Volume", tableOutput("classedVolume")),
+	tabPanel("Speed", tableOutput("speedClassed")),
 	tabPanel("Classes", tableOutput("data")),
 	tabPanel("Chart", plotOutput("chart")),
 	tabPanel("Map", leafletOutput("map"))

@@ -7,10 +7,11 @@ server <- function(input, output, session){
     options(shiny.maxRequestSize=30*1024^2) 
 
     hideTab("Tabs", "Dashboard")
-    hideTab("Tabs", "Classes")
     hideTab("Tabs", "Chart")
+    hideTab("Tabs", "Classes")
     hideTab("Tabs", "Speed")
     hideTab("Tabs", "Map")
+    hideTab("Tabs", "Volume")
     tblClassSummary <- data.frame("Class" = seq(1,12), "Description" = c("PC/MC","CAR/LGV","CAR/LGV","OGV1 & PSV 2 Axle","OGV1 & PSV 3 Axle","OGV2","OGV1 & PSV 3 Axle","OGV2","OGV2","OGV2","OGV2","OGV2"
 ))
 
@@ -19,10 +20,11 @@ server <- function(input, output, session){
     observeEvent(input$filename, {
         if(!is.null(input$filename)){
 	    showTab("Tabs", "Dashboard")
-	    showTab("Tabs", "Classes")
 	    showTab("Tabs", "Chart")
+	    showTab("Tabs", "Classes")
           showTab("Tabs", "Speed")	
           showTab("Tabs", "Map")
+	    showTab("Tabs", "Volume")
         }
     })
 
@@ -49,9 +51,10 @@ server <- function(input, output, session){
     parsedData <- data %>%
 	mutate(Date = as.POSIXct(substring(Row,16,25)), Time = format(floor_date(as.POSIXct(substring(Row, 27, 34 ), format="%H:%M:%S"), paste0(input$interval, " mins")), "%H:%M"), Dir = substring(Row, 36, 36)) %>%
 	mutate(Speed = as.numeric(substring(Row,39,44)), Class = as.integer(substring(Row,78,79))) %>%
+	mutate(Day = weekdays(Date)) %>%
 	left_join(tblDirections) %>%
 	inner_join(tblClassSummary) %>%
-	select(Date, Time, Direction, Speed, Class, Description)
+	select(Date, Time, Direction, Speed, Class, Description, Day)
               
   })
 
@@ -65,6 +68,7 @@ server <- function(input, output, session){
   )
 
   output$aveSpeeds <- renderTable({
+	req(theData())
 	average_speeds <- theData() %>%
 		group_by(Direction)  %>%
 		summarize(Average = mean(Speed), Percentile = quantile(Speed, probs=0.85, na.rm=TRUE)) %>%
@@ -74,7 +78,7 @@ server <- function(input, output, session){
 	})
 
   output$limitSummary <- renderTable({
-
+	req(theData())
 	speed_limit <- 50
 
 	psoSummary <- theData() %>%
@@ -112,8 +116,10 @@ server <- function(input, output, session){
   output$data <- renderTable({
   
 	classCount <- theData() %>%
+		filter(if(input$direction != "Both") Direction == input$direction else TRUE) %>%
 		select(Date, Time, Direction, Class) %>%
 	      arrange(Date, Time, Direction)%>%
+		mutate(Date = format(Date,format="%d/%m/%Y"))%>%
       	group_by(Time,Direction) %>%
 		pivot_wider(names_from=Class, 
 			values_from = Class, 
@@ -123,7 +129,8 @@ server <- function(input, output, session){
 
 	classCount[is.na(classCount)]=0
 
-	classCount<-classCount[, c("Date", "Time", "Direction", seq(1, max(theData()$Class),1))]
+	classCount<-classCount[, c("Date", "Time", "Direction", seq(1, max(theData()$Class),1))] %>%
+		mutate_at(as.character(seq(1, max(theData()$Class),1)), as.character)
 
 	classCount
     
@@ -166,10 +173,28 @@ server <- function(input, output, session){
 
 	})  
 
+  output$classedVolume <- renderTable({
+	dayCount <- theData() %>%
+		select(Day, Time, Direction) %>%
+		group_by(Day, Time) %>%
+		count() %>%
+		pivot_wider(names_from=Day,
+				values_from=n,
+				values_fn=list(Time=length))
+
+	dayCount <- as.data.frame(dayCount)
+	
+	dayCount <- dayCount[, c("Time", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")]
+	
+	})
+
   output$speedClassed <- renderTable({
 
+	req(theData())
+
 	speed15min <- theData()%>%
-  		mutate(SpeedBin = cut(Speed, c(seq(0, 70, 5),999),labels=seq(0,70,5)  )) %>%
+		filter(if(input$direction != "Both") Direction == input$direction else TRUE) %>%
+  		mutate(SpeedBin = cut(Speed, c(seq(0, 70, 5),999),labels=seq(0,70,5))) %>%
 		arrange(Time, SpeedBin, Speed) %>%
 		select(Class, SpeedBin, Time) %>%
  		pivot_wider(names_from=SpeedBin, 
@@ -184,7 +209,11 @@ server <- function(input, output, session){
 	speed15min[is.na(speed15min)]=0
 
 	# re-order columns
-	speed15min <- speed15min[, c("Time", seq(0, 70, 5))]
+	missingCols <- setdiff(as.character(seq(0,70,5)), names(speed15min)[-1])
+
+	speed15min[missingCols] <- 0
+
+	speed15min <- speed15min[, c("Time", seq(0,70,5))]
 	
 	speed15min <- speed15min %>% mutate_at(names(speed15min)[-1], as.character)
 
