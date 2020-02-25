@@ -26,7 +26,8 @@ ui <- fluidPage(theme="style.css",
 			fluidRow(
 				column(4, tableOutput("aveSpeeds")),
 				column(4, tableOutput("limitSummary")),
-				column(4, plotOutput("piechart"))
+				column(4, plotOutput("piechart")),
+				column(4, tableOutput("classedSummary"))
 			)
 		)
 	),

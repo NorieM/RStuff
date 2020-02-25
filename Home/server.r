@@ -219,12 +219,26 @@ server <- function(input, output, session){
 
 	speed15min
 
-})
+	})
 
+  output$classedSummary <- renderTable ({
+		classSummary <- theData() %>% 
+					arrange(Date) %>%
+					inner_join(tblClassSummary) %>%
+					group_by(Date, Day, Description, Direction) %>%
+					count() %>%
+					select(Day, Description, Direction, n)
+
+		classSummary <- classSummary %>%
+					pivot_wider(names_from = Description,
+							values_from = n,
+							values_fn = list(Day=length))
+	})  
+	
   output$direction_dropdown <- renderUI({
     selectInput("direction", 
             "Select Direction",
             choices = c("Both", unique(theData()$Direction))
             )
-})
+	})
 }
