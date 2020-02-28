@@ -23,14 +23,14 @@ ui <- fluidPage(theme="style.css",
 			fluidRow(
 				column(4, plotOutput("piechart")),
 				column(4, h3("Average speeds"), tableOutput("aveSpeeds")),
-				column(4, h3("On a 7-day average"), tableOutput("limitSummary")),
-				column(4, tableOutput("classedSummary"))
+				column(4, h3("On a 7-day average"), tableOutput("limitSummary"))
 			)
 		)
 	),
 	tabPanel("Volume", h2(uiOutput("VolumeHeader")), tableOutput("classedVolume")),
 	tabPanel("Speed", h2(uiOutput("SpeedHeader")), tableOutput("speedClassed")),
 	tabPanel("Classes", h2(uiOutput("ClassesHeader")), tableOutput("data")),
+	tabPanel("Classed", h2(uiOutput("ClassedHeader")), tableOutput("classedSummary")),
 	tabPanel("Chart", plotOutput("chart")),
 	tabPanel("Map", leafletOutput("map"))
 	)

@@ -7,10 +7,12 @@ server <- function(input, output, session) {
     
     hideTab("Tabs", "Dashboard")
     hideTab("Tabs", "Chart")
+    hideTab("Tabs", "Classed")
     hideTab("Tabs", "Classes")
     hideTab("Tabs", "Speed")
     hideTab("Tabs", "Map")
     hideTab("Tabs", "Volume")
+
     tblClassSummary <- data.frame(Class = seq(1, 12), Description = c("PC/MC", 
         "CAR/LGV", "CAR/LGV", "OGV1 & PSV 2 Axle", "OGV1 & PSV 3 Axle", 
         "OGV2", "OGV1 & PSV 3 Axle", "OGV2", "OGV2", "OGV2", "OGV2", "OGV2"))
@@ -22,6 +24,7 @@ server <- function(input, output, session) {
         if (!is.null(input$filename)) {
             showTab("Tabs", "Dashboard")
             showTab("Tabs", "Chart")
+		showTab("Tabs", "Classed")
             showTab("Tabs", "Classes")
             showTab("Tabs", "Speed")
             showTab("Tabs", "Map")
@@ -65,9 +68,8 @@ server <- function(input, output, session) {
         m <- leaflet() %>% 
              addTiles()%>% 
              setView(lat = 55.9004, lng = -3.5969, zoom = 16)%>% 
-		 addMarkers(data = dfLatLng, label = "Somewhere over the rainbow") %>%
-		 leafletOptions(zoomControl = FALSE)
-        m
+		 addMarkers(data = dfLatLng, label = "Somewhere over the rainbow")        
+	  m
     })
     
     output$aveSpeeds <- renderTable({
@@ -215,6 +217,7 @@ server <- function(input, output, session) {
         
         classSummary <- theData() %>% arrange(Date) %>% inner_join(tblClassSummary) %>% 
             group_by(Date, Day, Description, Direction) %>% count() %>% 
+		ungroup() %>%
             select(Day, Description, Direction, n)
         
         classSummary <- classSummary %>% pivot_wider(names_from = Description, 
@@ -224,10 +227,11 @@ server <- function(input, output, session) {
     output$direction_dropdown <- renderUI({
         req(theData())
 
-	  currentTab<- input$Tabs
-		if (currentTab !=	"Dashboard"){
-	        selectInput("direction", "Select Direction", choices = c("Both", unique(theData()$Direction)))
-		}
+	  currentTab <- input$Tabs
+	  currentDir <- input$direction
+	  if (!(currentTab  %in% c("Dashboard", "Map"))){
+	   selectInput("direction", "Select Direction", choices = c("Both", unique(theData()$Direction)), selected = currentDir)
+	  }
     })
  
     output$VolumeHeader <- renderUI({
@@ -240,6 +244,9 @@ server <- function(input, output, session) {
 
     output$ClassesHeader <- renderUI({
 		paste0("Classes counts - ", input$direction," ", input$interval ," min")
+	})
+    output$ClassedHeader <- renderUI({
+		paste0("Classed Summary")
 	})
 
 
