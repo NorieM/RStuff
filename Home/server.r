@@ -206,8 +206,11 @@ server <- function(input, output, session) {
         speed15min <- speed15min[, c("Time", seq(0, 70, 5))]
         
         speed15min <- speed15min %>% mutate_at(names(speed15min)[-1], as.character)
-        
-        speed15min
+
+	  aveSpeed <- theData() %>% group_by(Direction, Time) %>% summarize(Average = mean(Speed), "%85" = quantile(Speed, probs = 0.85, na.rm = TRUE), "%95" = quantile(Speed, probs = 0.85, na.rm = TRUE)) 
+     
+        speed15min <- speed15min %>% left_join(aveSpeed)
+
         
     })
     
