@@ -23,7 +23,7 @@ ui <- fluidPage(theme="style.css",
 			fluidRow(
 				column(4, plotOutput("piechart")),
 				column(4, h3("Average speeds"), tableOutput("aveSpeeds")),
-				column(4, h3("On a 7-day average"), tableOutput("limitSummary"))
+				column(4, h3("On a 7-day average"), tableOutput("limitSummary"), uiOutput("Abbreviations"))
 			)
 		)
 	),

@@ -95,21 +95,20 @@ server <- function(input, output, session) {
         dftSummary <- theData() %>% filter(Speed > speed_limit + 15) %>% 
             group_by(Direction) %>% count(Direction)
         
-        speedSummary <- data.frame(psoSummary$n, apoSummary$n, dftSummary$n)
+        speedSummary <- psoSummary %>% merge(apoSummary, by="Direction") %>% merge(dftSummary, by="Direction")
         
-        names(speedSummary) = c("PSO", "APO", "DFT")
+        names(speedSummary) = c("Direction", "PSO", "APO", "DFT")
         
-        speedSummary <- add_row(speedSummary, PSO = theData() %>% filter(Speed > 
+        speedSummary <- add_row(speedSummary, Direction="Both", PSO = theData() %>% filter(Speed > 
             speed_limit) %>% count(), APO = theData() %>% filter(Speed > 
             speed_limit * 1.1 + 2) %>% count(), DFT = theData() %>% filter(Speed > 
             speed_limit + 15) %>% count())
-        
-        row.names(speedSummary) = c(psoSummary$Direction[1], psoSummary$Direction[2], 
-            "Both")
+
+        speedSummary[1, 2:4]<-paste0(round(unlist(speedSummary[1, 2:4])/length(which(theData()$Direction=="Eastbound"))*100,1), "%")
+        speedSummary[2, 2:4]<-paste0(round(unlist(speedSummary[2, 2:4])/length(which(theData()$Direction=="Westbound"))*100,1), "%")
+        speedSummary[3, 2:4]<-paste0(round(unlist(speedSummary[3, 2:4])/length(theData()$Direction)*100,1), "%")
         
         speedSummary %>% mutate_at(names(speedSummary), as.character)
-        
-        cbind(Direction = c("Northbound", "Southbound", "Both"), speedSummary)
         
     })
     
@@ -249,5 +248,12 @@ server <- function(input, output, session) {
 		paste0("Classed Summary")
 	})
 
+    output$Abbreviations <- renderUI({   
+	abbr<-c("PSO - Posted speed limit","APO - Association of Chief Police Officers - 110% of PSL + 2mph",					
+		  "DFT - Department for Transport - PSL + 15mph")
+
+ 	HTML(paste0("<ul><li>", paste0(paste0(abbr, collpase = ""), collapse = "</li><li>"),"</li></ul>"))
+
+ 	})
 
 }
