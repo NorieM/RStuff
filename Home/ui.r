@@ -9,10 +9,14 @@ library(textreadr)
 ui <- fluidPage(theme="style.css",
 
   sidebarPanel(
+	h1("Tracsis ATC Analyser"),
 	fileInput(inputId = "filename", label = "Select ECO file"),
-	radioButtons(inputId =  "interval", label = "Interval (mins)", c(5,15, 60), selected=15), 
+	uiOutput("interval_selector"),
+	#radioButtons(inputId =  "interval", label = "Interval (mins)", c(5,15, 60), selected=15), 
 	uiOutput("direction_dropdown"),
 	uiOutput("day_dropdown"),
+	uiOutput("download_button"),
+	#downloadButton("downloadData", "Download"),
 	width = 2
 	),
 

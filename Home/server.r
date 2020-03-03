@@ -289,8 +289,14 @@ server <- function(input, output, session) {
 	}
     })
 
+	
+    output$download_button <- renderUI({
+	  req(theData())
+        downloadButton("downloadData", "Download parsed data")
+	})
+
     output$day_dropdown <- renderUI({
-	req(theData())
+	  req(theData())
 
 	  currentTab <- input$Tabs 
 	  if(!length(currentTab)==0){
@@ -301,6 +307,18 @@ server <- function(input, output, session) {
 	}
 	})
  
+    output$interval_selector <- renderUI({
+	req(theData())
+
+	  currentTab <- input$Tabs 
+	  if(!length(currentTab)==0){
+
+        if(currentTab %in% c("Classes", "Speed", "Volume")){
+		radioButtons(inputId =  "interval", label = "Interval (mins)", c(5,15, 60), selected=15)
+	  }
+	}
+
+	})
     output$VolumeHeader <- renderUI({
 		paste0("Volume counts - ", input$direction," ", input$interval ," mins")
 	})
@@ -323,5 +341,15 @@ server <- function(input, output, session) {
  	HTML(paste0("<ul><li>", paste0(paste0(abbr, collpase = ""), collapse = "</li><li>"),"</li></ul>"))
 
  	})
+
+	
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste("ParsedData.csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(theData(), file, row.names = FALSE)
+    }
+  )
 
 }
