@@ -13,6 +13,8 @@ server <- function(input, output, session) {
     hideTab("Tabs", "Map")
     hideTab("Tabs", "Volume")
 
+    speed_limit <- 50
+
     tblClassSummary <- data.frame(Class = seq(1, 12), Description = c("PC/MC", 
         "CAR/LGV", "CAR/LGV", "OGV1 & PSV 2 Axle", "OGV1 & PSV 3 Axle", 
         "OGV2", "OGV1 & PSV 3 Axle", "OGV2", "OGV2", "OGV2", "OGV2", "OGV2"))
@@ -58,7 +60,7 @@ server <- function(input, output, session) {
             27, 34), format = "%H:%M:%S"), paste0(input$interval, " mins")), 
             "%H:%M"), Dir = substring(Row, 36, 36)) %>% mutate(Speed = as.numeric(substring(Row, 
             39, 44)), Class = as.integer(substring(Row, 78, 79))) %>% mutate(Day = weekdays(Date)) %>% 
-            left_join(tblDirections) %>% inner_join(tblClassSummary) %>% 
+            left_join(tblDirections, by=c("Dir")) %>% inner_join(tblClassSummary, by=c("Class")) %>% 
             select(Date, Time, Direction, Speed, Class, Description, Day)
         
     })
@@ -89,8 +91,6 @@ server <- function(input, output, session) {
     output$limitSummary <- renderTable({
 
         req(theData())
-
-        speed_limit <- 50
         
         psoSummary <- theData() %>% filter(Speed > speed_limit) %>% group_by(Direction) %>% 
             count(Direction)
@@ -128,7 +128,7 @@ server <- function(input, output, session) {
 
 		TotalWeeklyAverage <- theData() %>% summarize(Total = sum(wday(Date) %in% c(1,2,3,4,5,6,7)))
 
-		Averages <-  WeekdayAverage %>% inner_join(WeeklyAverage)
+		Averages <-  WeekdayAverage %>% inner_join(WeeklyAverage, by=c("Direction"))
 
 		Averages <- add_row(Averages,Direction = "Both", Weekday=TotalWeekdayAverage[,1], Weekly=TotalWeeklyAverage[,1])
 
@@ -168,7 +168,7 @@ server <- function(input, output, session) {
 	req(theData())
         
         chartData <- theData() %>% filter(if (input$direction != "Both") 
-            Direction == input$direction else TRUE) %>% mutate(Day = wday(Date, label = TRUE, abbr = FALSE)) %>% 
+            Direction == input$direction else TRUE) %>% mutate(Day = wday(Date, label = TRUE, abbr = FALSE, week_start= getOption("lubridate.week.start", 1))) %>% 
             group_by(Day, Time) %>% count(Time) %>% select(Day, Time, n)
         
         ggplot(data = chartData, aes(x = Time, y = n)) + geom_line(aes(group = Day, 
@@ -204,6 +204,9 @@ server <- function(input, output, session) {
     })
     
     output$classedVolume <- renderTable({
+
+	req(theData())
+
         dayCount <- theData() %>% filter(if (input$direction != "Both") 
             Direction == input$direction else TRUE) %>% select(Day, Time, Direction) %>% group_by(Day, 
             Time) %>% count() %>% pivot_wider(names_from = Day, values_from = n, 
@@ -223,10 +226,9 @@ server <- function(input, output, session) {
         speed15min <- theData() %>% filter(if (input$direction != "Both") 
             Direction == input$direction else TRUE) %>% mutate(SpeedBin = cut(Speed, c(seq(0, 70, 5), 999), 
             labels = seq(0, 70, 5))) %>% arrange(Time, SpeedBin, Speed) %>% 
-            select(Class, SpeedBin, Time) %>% pivot_wider(names_from = SpeedBin, 
+            select(Direction,Class, SpeedBin, Time) %>% pivot_wider(names_from = SpeedBin, 
             values_from = Class, values_fn = list(Class = length))
-        
-        
+                
         # create data frame from pivot
         speed15min <- as.data.frame(speed15min)
         
@@ -238,15 +240,24 @@ server <- function(input, output, session) {
         
         speed15min[missingCols] <- 0
         
-        speed15min <- speed15min[, c("Time", seq(0, 70, 5))]
+        speed15min <- speed15min[, c("Time", "Direction", seq(0, 70, 5))]
         
         speed15min <- speed15min %>% mutate_at(names(speed15min)[-1], as.character)
 
-	  #aveSpeed <- theData() %>% group_by(Direction, Time) %>% summarize(Average = mean(Speed), "%85" = quantile(Speed, probs = 0.85, na.rm = TRUE), "%95" = quantile(Speed, probs = 0.85, na.rm = TRUE)) 
+	  aveSpeed <- theData() %>% 
+		group_by(Direction, Time) %>% 
+		summarize(Average = mean(Speed), "85%" = quantile(Speed, probs = 0.85, na.rm = TRUE), "95%" = quantile(Speed, probs = 0.85, na.rm = TRUE)) %>%
+		ungroup()
 
-        #countSpeed <- theData() %>% group_by(Direction, Time) %>% summarize(sum(Speed>30), sum(Speed>35), sum(Speed>45))     
 
-        #speed15min <- speed15min  %>% left_join(countSpeed) %>% left_join(aveSpeed)
+        countSpeed <- theData() %>% 
+		group_by(Direction, Time) %>% 
+		summarize("PSL" = sum(Speed> speed_limit), "APO" = sum(Speed> speed_limit*1.1+2), "DFT"=sum(Speed> speed_limit+15)) %>%
+		ungroup()
+
+        speed15min <- speed15min  %>% left_join(countSpeed) %>% left_join(aveSpeed)
+
+	  speed15min
         
     })
     
@@ -254,31 +265,40 @@ server <- function(input, output, session) {
         req(theData())
         
         classSummary <- theData() %>% arrange(Date) %>% inner_join(tblClassSummary) %>% 
+	      filter(if (input$direction != "Both") 
+            Direction == input$direction else TRUE) %>%
             group_by(Date, Day, Description, Direction) %>% count() %>% 
 		ungroup() %>%
             select(Day, Description, Direction, n)
         
         classSummary <- classSummary %>% pivot_wider(names_from = Description, 
-            values_from = n, values_fn = list(Day = length))
+            values_from = n, values_fn = list(Day = length)) 
+
+        classSummary <- classSummary[, c(1,2,7,3,4,5,6)]
     })
     
     output$direction_dropdown <- renderUI({
         req(theData())
 
 	  currentTab <- input$Tabs
+	  if(!length(currentTab)==0){
 	  currentDir <- input$direction
 	  if (!(currentTab  %in% c("Dashboard", "Map"))){
 	   selectInput("direction", "Select direction", choices = c("Both", unique(theData()$Direction)), selected = currentDir)
 	  }
+	}
     })
 
     output$day_dropdown <- renderUI({
 	req(theData())
-	  currentTab <- input$Tabs
+
+	  currentTab <- input$Tabs 
+	  if(!length(currentTab)==0){
 	  currentDay <- input$day
         if(currentTab %in% c("Classes", "Speed")){
 		selectInput("day", "Select day", choices = c("All", unique(theData()$Day)), selected = currentDay)
 	  }
+	}
 	})
  
     output$VolumeHeader <- renderUI({
