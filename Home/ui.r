@@ -12,6 +12,7 @@ ui <- fluidPage(theme="style.css",
 	fileInput(inputId = "filename", label = "Select ECO file"),
 	radioButtons(inputId =  "interval", label = "Interval (mins)", c(5,15, 60), selected=15), 
 	uiOutput("direction_dropdown"),
+	uiOutput("day_dropdown"),
 	width = 2
 	),
 
@@ -23,7 +24,10 @@ ui <- fluidPage(theme="style.css",
 			fluidRow(
 				column(4, plotOutput("piechart")),
 				column(4, h3("Average speeds"), tableOutput("aveSpeeds")),
-				column(4, h3("On a 7-day average"), tableOutput("limitSummary"), uiOutput("Abbreviations"))
+				column(4, h3("On a 7-day average"), tableOutput("limitSummary"), uiOutput("Abbreviations"))			
+			),
+			fluidRow(
+				column(4, tableOutput("AverageTraffic"))
 			)
 		)
 	),

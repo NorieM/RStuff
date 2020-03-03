@@ -64,7 +64,9 @@ server <- function(input, output, session) {
     })
     
     output$map <- renderLeaflet({
+
         dfLatLng <- data.frame(lat = 55.9004, lng = -3.5969)
+
         m <- leaflet() %>% 
              addTiles()%>% 
              setView(lat = 55.9004, lng = -3.5969, zoom = 16)%>% 
@@ -73,7 +75,9 @@ server <- function(input, output, session) {
     })
     
     output$aveSpeeds <- renderTable({
+
         req(theData())
+
         average_speeds <- theData() %>% group_by(Direction) %>% summarize(Average = mean(Speed), 
             Percentile = quantile(Speed, probs = 0.85, na.rm = TRUE)) %>% 
             rbind(c("Both", mean(theData()$Speed), quantile(theData()$Speed, 
@@ -83,7 +87,9 @@ server <- function(input, output, session) {
     })
     
     output$limitSummary <- renderTable({
+
         req(theData())
+
         speed_limit <- 50
         
         psoSummary <- theData() %>% filter(Speed > speed_limit) %>% group_by(Direction) %>% 
@@ -112,7 +118,33 @@ server <- function(input, output, session) {
         
     })
     
+    output$AverageTraffic <- renderTable({
+	req(theData())
+		WeekdayAverage <- theData() %>% group_by(Direction) %>% summarize(Weekday= sum(wday(Date) %in% c(2,3,4,5,6)))
+
+		WeeklyAverage <- theData() %>% group_by(Direction) %>% summarize(Weekly = sum(wday(Date) %in% c(1,2,3,4,5,6,7)))
+
+		TotalWeekdayAverage <- theData() %>% summarize(Total = sum(wday(Date) %in% c(2,3,4,5,6)))
+
+		TotalWeeklyAverage <- theData() %>% summarize(Total = sum(wday(Date) %in% c(1,2,3,4,5,6,7)))
+
+		Averages <-  WeekdayAverage %>% inner_join(WeeklyAverage)
+
+		Averages <- add_row(Averages,Direction = "Both", Weekday=TotalWeekdayAverage[,1], Weekly=TotalWeeklyAverage[,1])
+
+		Averages$Weekday <- as.character(round(Averages$Weekday/5,0))
+
+		Averages['7 Day Average'] <- as.character(round(Averages$Weekly/7,0))
+
+		Averages<- Averages[, c(1,2,4,3)]
+
+		#names(Averages) <- c("Direction", "Weekday Average Total Traffic", "7-Day Average Traffic", "Weekly Traffic Total")
+
+		#Averages
+	})    
+
     output$data <- renderTable({
+	req(theData())
         
         classCount <- theData() %>% filter(if (input$direction != "Both") 
             Direction == input$direction else TRUE) %>% select(Date, Time, Direction, Class) %>% arrange(Date, 
@@ -133,6 +165,7 @@ server <- function(input, output, session) {
     })
     
     output$chart <- renderPlot({
+	req(theData())
         
         chartData <- theData() %>% filter(if (input$direction != "Both") 
             Direction == input$direction else TRUE) %>% mutate(Day = wday(Date, label = TRUE, abbr = FALSE)) %>% 
@@ -148,6 +181,8 @@ server <- function(input, output, session) {
     
     output$piechart <- renderPlot({
         
+	req(theData())
+
         classCount <- as.data.frame(summary(theData()$Description))
         
         colnames(classCount) <- c("Count")
@@ -233,9 +268,18 @@ server <- function(input, output, session) {
 	  currentTab <- input$Tabs
 	  currentDir <- input$direction
 	  if (!(currentTab  %in% c("Dashboard", "Map"))){
-	   selectInput("direction", "Select Direction", choices = c("Both", unique(theData()$Direction)), selected = currentDir)
+	   selectInput("direction", "Select direction", choices = c("Both", unique(theData()$Direction)), selected = currentDir)
 	  }
     })
+
+    output$day_dropdown <- renderUI({
+	req(theData())
+	  currentTab <- input$Tabs
+	  currentDay <- input$day
+        if(currentTab %in% c("Classes", "Speed")){
+		selectInput("day", "Select day", choices = c("All", unique(theData()$Day)), selected = currentDay)
+	  }
+	})
  
     output$VolumeHeader <- renderUI({
 		paste0("Volume counts - ", input$direction," ", input$interval ," mins")
