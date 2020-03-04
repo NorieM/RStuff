@@ -57,7 +57,7 @@ server <- function(input, output, session) {
         
         parsedData <- data %>% mutate(Date = as.POSIXct(substring(Row, 
             16, 25)), Time = format(floor_date(as.POSIXct(substring(Row, 
-            27, 34), format = "%H:%M:%S"), paste0(input$interval, " mins")), 
+            27, 34), format = "%H:%M:%S"), paste0(if(length(input$interval) == 0) 15 else input$interval , " mins")), 
             "%H:%M"), Dir = substring(Row, 36, 36)) %>% mutate(Speed = as.numeric(substring(Row, 
             39, 44)), Class = as.integer(substring(Row, 78, 79))) %>% mutate(Day = weekdays(Date)) %>% 
             left_join(tblDirections, by=c("Dir")) %>% inner_join(tblClassSummary, by=c("Class")) %>% 
@@ -164,18 +164,25 @@ server <- function(input, output, session) {
         
     })
     
-    output$chart <- renderPlot({
+    output$chart <- renderGvis({
+
+	#session$clientData$output_trend_width
+
 	req(theData())
         
         chartData <- theData() %>% filter(if (input$direction != "Both") 
             Direction == input$direction else TRUE) %>% mutate(Day = wday(Date, label = TRUE, abbr = FALSE, week_start= getOption("lubridate.week.start", 1))) %>% 
             group_by(Day, Time) %>% count(Time) %>% select(Day, Time, n)
         
-        ggplot(data = chartData, aes(x = Time, y = n)) + geom_line(aes(group = Day, 
-            color = Day)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-            panel.background = element_blank()) + theme(plot.title = element_text(hjust = 0.5, 
-            face = "bold")) + scale_x_discrete(breaks = chartData$Time[seq(1, 
-            96, by = 4)]) + ggtitle(paste0("Volume by day - ", input$direction))
+        chartData<-chartData %>% pivot_wider(names_from=Day, values_from=n, values_fn = list(Time=n))
+
+        gvisLineChart(chartData, options=list(curveType='function', height=500, title=paste0("Volume by day - ", input$direction)))  
+
+       #ggplot(data = chartData, aes(x = Time, y = n)) + geom_line(aes(group = Day, 
+        #    color = Day)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+         #   panel.background = element_blank()) + theme(plot.title = element_text(hjust = 0.5, 
+          #  face = "bold")) + scale_x_discrete(breaks = chartData$Time[seq(1, 
+           # 96, by = 4)]) + ggtitle(paste0("Volume by day - ", input$direction))
         
     })
     
@@ -312,13 +319,14 @@ server <- function(input, output, session) {
 
 	  currentTab <- input$Tabs 
 	  if(!length(currentTab)==0){
-
-        if(currentTab %in% c("Classes", "Speed", "Volume")){
-		radioButtons(inputId =  "interval", label = "Interval (mins)", c(5,15, 60), selected=15)
+	        currentInterval = input$interval
+      	  if(currentTab %in% c("Classes", "Speed", "Volume")){
+			radioButtons(inputId =  "interval", label = "Interval (mins)", c(5,15, 60), selected=if(length(currentInterval)==0) 15 else currentInterval)
 	  }
 	}
 
 	})
+
     output$VolumeHeader <- renderUI({
 		paste0("Volume counts - ", input$direction," ", input$interval ," mins")
 	})
@@ -330,6 +338,7 @@ server <- function(input, output, session) {
     output$ClassesHeader <- renderUI({
 		paste0("Classes counts - ", input$direction," ", input$interval ," min")
 	})
+
     output$ClassedHeader <- renderUI({
 		paste0("Classed Summary")
 	})

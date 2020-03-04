@@ -1,4 +1,5 @@
 library(DT)
+library(googleVis)
 library(hms)
 library(leaflet)
 library(lubridate)
@@ -7,7 +8,7 @@ library(tidyverse)
 library(textreadr)
 
 ui <- fluidPage(theme="style.css",
-
+	title="ATC Analyser",
   sidebarPanel(
 	h1("Tracsis ATC Analyser"),
 	fileInput(inputId = "filename", label = "Select ECO file"),
@@ -39,7 +40,7 @@ ui <- fluidPage(theme="style.css",
 	tabPanel("Speed", h2(uiOutput("SpeedHeader")), tableOutput("speedClassed")),
 	tabPanel("Classes", h2(uiOutput("ClassesHeader")), tableOutput("data")),
 	tabPanel("Classed", h2(uiOutput("ClassedHeader")), tableOutput("classedSummary")),
-	tabPanel("Chart", plotOutput("chart")),
+	tabPanel("Chart", htmlOutput("chart")),
 	tabPanel("Map", leafletOutput("map"))
 	)
   )
